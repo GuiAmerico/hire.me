@@ -1,9 +1,12 @@
 package com.bemobi.encurtadorurl.repository;
 
 import com.bemobi.encurtadorurl.model.Url;
+import java.util.Optional;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
 public interface UrlRepository extends MongoRepository<Url, String> {
-    boolean existsByShortUrl(String shortUrl);
+    boolean existsByAlias(String shortUrl);
+    Optional<Url> findByAlias(String shortUrl);
+    Optional<Url> findByOriginalUrl(String originalUrl);
 
 }

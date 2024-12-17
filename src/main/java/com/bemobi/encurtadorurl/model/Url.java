@@ -16,5 +16,15 @@ public class Url {
   private String id;
   private String originalUrl;
   private String shortUrl;
-  private long processingTimeInMs;
+  private String alias;
+
+  public Url(
+    String originalUrl,
+    String shortUrl,
+    String alias
+  ) {
+    this.originalUrl = originalUrl;
+    this.shortUrl = shortUrl;
+    this.alias = alias;
+  }
 }
