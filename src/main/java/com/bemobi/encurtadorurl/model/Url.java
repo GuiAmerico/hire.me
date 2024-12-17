@@ -17,6 +17,7 @@ public class Url {
   private String originalUrl;
   private String shortUrl;
   private String alias;
+  private long accessCount;
 
   public Url(
     String originalUrl,

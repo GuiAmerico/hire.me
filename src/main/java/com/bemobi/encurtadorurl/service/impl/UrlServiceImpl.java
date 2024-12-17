@@ -8,11 +8,15 @@ import com.bemobi.encurtadorurl.model.Url;
 import com.bemobi.encurtadorurl.repository.UrlRepository;
 import com.bemobi.encurtadorurl.service.UrlService;
 import com.bemobi.encurtadorurl.shortener.UrlShortener;
-import java.net.URI;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StopWatch;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -21,11 +25,13 @@ import org.springframework.web.util.UriComponentsBuilder;
 @Service
 public class UrlServiceImpl implements UrlService {
 
+  private static final UriComponentsBuilder RETRIEVE_PATH = UriComponentsBuilder.fromPath(
+    "/api/v1/url-shorten/{shortUrl}");
   private final UrlRepository urlRepository;
+  private final MongoTemplate mongoTemplate;
   private final UrlShortener urlShortener;
   @Value("${app.base-url}")
   private String BASE_URL;
-  private static final UriComponentsBuilder RETRIEVE_PATH = UriComponentsBuilder.fromPath("/api/v1/url-shorten/{shortUrl}");
 
   @Override
   public UrlShortenDTO shorten(String originalUrl, String customShortUrl) {
@@ -58,10 +64,27 @@ public class UrlServiceImpl implements UrlService {
 
   @Override
   public String retrieve(String alias) {
-    return urlRepository
-      .findByAlias(alias)
-      .map(Url::getOriginalUrl)
-      .orElseThrow(() -> new ResourceNotFoundException(ExceptionType.SHORTENED_URL_NOT_FOUND));
+    Query findByAlias = new Query().addCriteria(Criteria.where("alias").is(alias));
+    Update updateAccessCount = new Update().inc("accessCount", 1);
+    Url url = mongoTemplate.findAndModify(
+      findByAlias,
+      updateAccessCount,
+      Url.class
+    );
+    if (Objects.isNull(url)) {
+      throw new ResourceNotFoundException(ExceptionType.SHORTENED_URL_NOT_FOUND);
+    }
+    return url.getOriginalUrl();
+  }
+
+  @Override
+  public List<UrlShortenDTO> listMostVisitedUrls() {
+
+    List<Url> urls = urlRepository.findTop10ByOrderByAccessCountDesc();
+    return urls
+      .stream()
+      .map(url -> new UrlShortenDTO(url, null))
+      .toList();
   }
 
   private String getShortUrl(String url, String customShortUrl) {

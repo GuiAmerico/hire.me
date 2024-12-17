@@ -5,6 +5,7 @@ import com.bemobi.encurtadorurl.service.UrlService;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import java.io.IOException;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -41,6 +42,10 @@ public class UrlController {
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
     }
     return ResponseEntity.status(HttpStatus.FOUND).build();
+  }
+  @GetMapping
+  public List<UrlShortenDTO> listMostVisitedUrls() {
+    return urlService.listMostVisitedUrls();
   }
 
 }

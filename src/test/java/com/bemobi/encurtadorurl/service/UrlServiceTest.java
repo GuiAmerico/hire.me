@@ -17,7 +17,11 @@ import com.bemobi.encurtadorurl.model.Url;
 import com.bemobi.encurtadorurl.repository.UrlRepository;
 import com.bemobi.encurtadorurl.service.impl.UrlServiceImpl;
 import com.bemobi.encurtadorurl.shortener.UrlShortener;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -172,5 +176,39 @@ class UrlServiceTest {
       .isInstanceOf(ResourceNotFoundException.class)
       .hasMessage("SHORTENED URL NOT FOUND");
 
+  }
+
+  // Returns list of top 10 most visited URLs sorted by access count in descending order
+  @Test
+  void shouldReturnsTop10MostVisitedUrls() {
+
+    List<Url> urls = List.of(
+      new Url(UUID.randomUUID().toString(), "url1", "short1", "alias1", 10),
+      new Url(UUID.randomUUID().toString(), "url2", "short2", "alias2", 5),
+      new Url(UUID.randomUUID().toString(), "url3", "short3", "alias3", 6),
+      new Url(UUID.randomUUID().toString(), "url4", "short4", "alias4", 12),
+      new Url(UUID.randomUUID().toString(), "url5", "short5", "alias5", 93),
+      new Url(UUID.randomUUID().toString(), "url6", "short6", "alias6", 1),
+      new Url(UUID.randomUUID().toString(), "url7", "short7", "alias7", 11),
+      new Url(UUID.randomUUID().toString(), "url8", "short8", "alias8", 1),
+      new Url(UUID.randomUUID().toString(), "url9", "short9", "alias9", 15),
+      new Url(UUID.randomUUID().toString(), "url10", "short10", "alias10", 1),
+      new Url(UUID.randomUUID().toString(), "url11", "short11", "alias11", 12),
+      new Url(UUID.randomUUID().toString(), "url12", "short12", "alias12", 1),
+      new Url(UUID.randomUUID().toString(), "url13", "short13", "alias13", 132)
+    );
+
+    List<Url> top10 = urls
+      .stream()
+      .sorted(Comparator.comparing(Url::getAccessCount).reversed())
+      .limit(10)
+      .toList();
+    when(urlRepository.findTop10ByOrderByAccessCountDesc()).thenReturn(top10);
+
+    List<UrlShortenDTO> result = urlService.listMostVisitedUrls();
+
+    assertThat(result).hasSize(10);
+    assertThat(result.getFirst()).isEqualTo(new UrlShortenDTO(urls.get(12), null));
+    assertThat(result.getLast()).isEqualTo(new UrlShortenDTO(urls.get(5), null));
   }
 }
