@@ -34,7 +34,7 @@ public class UrlServiceImpl implements UrlService {
   private String BASE_URL;
 
   @Override
-  public UrlShortenDTO shorten(String originalUrl, String customShortUrl) {
+  public UrlShortenDTO shorten(String originalUrl, String customAlias) {
     StopWatch stopWatch = new StopWatch();
     stopWatch.start();
 
@@ -49,7 +49,7 @@ public class UrlServiceImpl implements UrlService {
     String alias;
 
     do {
-      alias = getShortUrl(originalUrl, customShortUrl);
+      alias = getShortUrl(originalUrl, customAlias);
     } while (urlRepository.existsByAlias(alias));
 
     final String shortUrl = BASE_URL.concat(RETRIEVE_PATH.build(alias).getPath());
@@ -90,7 +90,7 @@ public class UrlServiceImpl implements UrlService {
   private String getShortUrl(String url, String customShortUrl) {
     if (Objects.nonNull(customShortUrl)) {
       validateCustomShortUrl(customShortUrl);
-      return customShortUrl;
+      return customShortUrl.replace(" ", "-");
     }
 
     String generatedUrl;

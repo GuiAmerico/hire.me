@@ -26,7 +26,7 @@ public class UrlController {
 
   @PostMapping
   public ResponseEntity<UrlShortenDTO> shortenUrl(@RequestBody @Valid UrlShortenDTO request) {
-    UrlShortenDTO response = urlService.shorten(request.getOriginalUrl(), request.getShortUrl());
+    UrlShortenDTO response = urlService.shorten(request.getOriginalUrl(), request.getAlias());
     return ResponseEntity.status(HttpStatus.CREATED).body(response);
   }
 
@@ -43,7 +43,7 @@ public class UrlController {
     }
     return ResponseEntity.status(HttpStatus.FOUND).build();
   }
-  @GetMapping
+  @GetMapping("/most-visited")
   public List<UrlShortenDTO> listMostVisitedUrls() {
     return urlService.listMostVisitedUrls();
   }

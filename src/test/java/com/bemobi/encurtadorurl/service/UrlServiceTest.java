@@ -2,7 +2,7 @@ package com.bemobi.encurtadorurl.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -12,18 +12,14 @@ import static org.mockito.Mockito.when;
 import com.bemobi.encurtadorurl.controller.dto.UrlShortenDTO;
 import com.bemobi.encurtadorurl.exceptions.ResourceAlreadyExistsException;
 import com.bemobi.encurtadorurl.exceptions.ResourceNotFoundException;
-import com.bemobi.encurtadorurl.exceptions.enums.ExceptionType;
 import com.bemobi.encurtadorurl.model.Url;
 import com.bemobi.encurtadorurl.repository.UrlRepository;
 import com.bemobi.encurtadorurl.service.impl.UrlServiceImpl;
 import com.bemobi.encurtadorurl.shortener.UrlShortener;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -165,7 +161,6 @@ class UrlServiceTest {
     verify(urlRepository).findByAlias(alias);
   }
 
-  // Throws exception when alias is not found
   @Test
   void shouldThrowExceptionForNotRegisteredAlias() {
     String alias = "nonexistent";
@@ -178,7 +173,6 @@ class UrlServiceTest {
 
   }
 
-  // Returns list of top 10 most visited URLs sorted by access count in descending order
   @Test
   void shouldReturnsTop10MostVisitedUrls() {
 
