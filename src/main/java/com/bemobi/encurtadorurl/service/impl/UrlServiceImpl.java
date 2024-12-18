@@ -49,7 +49,7 @@ public class UrlServiceImpl implements UrlService {
     String alias;
 
     do {
-      alias = getShortUrl(originalUrl, customAlias);
+      alias = getAlias(originalUrl, customAlias);
     } while (urlRepository.existsByAlias(alias));
 
     final String shortUrl = BASE_URL.concat(RETRIEVE_PATH.build(alias).getPath());
@@ -87,18 +87,18 @@ public class UrlServiceImpl implements UrlService {
       .toList();
   }
 
-  private String getShortUrl(String url, String customShortUrl) {
-    if (Objects.nonNull(customShortUrl) && !customShortUrl.isBlank()) {
-      validateCustomShortUrl(customShortUrl);
-      return customShortUrl.replace(" ", "-");
+  private String getAlias(String url, String customAlias) {
+    if (Objects.nonNull(customAlias) && !customAlias.isBlank()) {
+      validateCustomShortUrl(customAlias);
+      return customAlias.replace(" ", "-");
     }
 
-    String generatedUrl;
+    String generatedAlias;
     do {
-      generatedUrl = urlShortener.shorten(url);
-    } while (urlRepository.existsByAlias(generatedUrl));
+      generatedAlias = urlShortener.shorten(url);
+    } while (urlRepository.existsByAlias(generatedAlias));
 
-    return generatedUrl;
+    return generatedAlias;
   }
 
   private void validateCustomShortUrl(String customShortUrl) {
