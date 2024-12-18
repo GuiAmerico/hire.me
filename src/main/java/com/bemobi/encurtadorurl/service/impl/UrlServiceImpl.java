@@ -88,7 +88,7 @@ public class UrlServiceImpl implements UrlService {
   }
 
   private String getShortUrl(String url, String customShortUrl) {
-    if (Objects.nonNull(customShortUrl)) {
+    if (Objects.nonNull(customShortUrl) && !customShortUrl.isBlank()) {
       validateCustomShortUrl(customShortUrl);
       return customShortUrl.replace(" ", "-");
     }
