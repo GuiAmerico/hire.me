@@ -26,26 +26,36 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
 class UrlServiceTest {
 
+  static final String BASE_URL = "http://short.url/";
   @InjectMocks
   UrlServiceImpl urlService;
-  @Mock UrlRepository urlRepository;
-  @Mock UrlShortener urlShortener;
-  static final String BASE_URL = "http://short.url/";
+  @Mock
+  UrlRepository urlRepository;
+  @Mock
+  MongoTemplate mongoTemplate;
+  @Mock
+  UrlShortener urlShortener;
+
   @BeforeEach
   void setUp() {
     ReflectionTestUtils.setField(urlService, "BASE_URL", BASE_URL);
 
   }
+
   @Test
   void shouldReturnsExistingShortUrlIfUrlAlreadyRegistered() {
     String originalUrl = "https://example.com";
     String alias = "abc123";
-    String shortUrl =  BASE_URL.concat(alias);
+    String shortUrl = BASE_URL.concat(alias);
 
     Url existingUrl = new Url(originalUrl, shortUrl, alias);
 
@@ -107,6 +117,7 @@ class UrlServiceTest {
     assertThat(generatedAlias).isEqualTo(result.getAlias());
     verify(urlRepository).save(any(Url.class));
   }
+
   @Test
   void shouldRegenerateAliasIfAlreadyInDatabase() {
     String originalUrl = "http://example.com";
@@ -114,7 +125,6 @@ class UrlServiceTest {
     String alias1 = "abc123";
     String alias2 = "def456";
     String expectedShortUrl = BASE_URL.concat(alias2);
-
 
     when(urlRepository.findByOriginalUrl(originalUrl)).thenReturn(Optional.empty());
     when(urlShortener.shorten(originalUrl)).thenReturn(alias1, alias2);
@@ -132,11 +142,11 @@ class UrlServiceTest {
     verify(urlRepository).save(any(Url.class));
     verify(urlShortener, times(2)).shorten(any(String.class));
   }
+
   @Test
   void shouldThrownExceptionIfCustomAliasAlreadyRegistered() {
     String originalUrl = "http://example.com";
     String customAlias = "customAlias";
-
 
     when(urlRepository.existsByAlias(customAlias)).thenReturn(true);
 
@@ -145,6 +155,7 @@ class UrlServiceTest {
       .hasMessage("CUSTOM ALIAS ALREADY EXISTS");
 
   }
+
   @Test
   void shouldReturnUrlForValidAlias() {
     String alias = "abc123";
@@ -152,20 +163,28 @@ class UrlServiceTest {
     String expectedShortUrl = BASE_URL.concat(alias);
 
     Url url = new Url(originalUrl, expectedShortUrl, alias);
+    Query findByAlias = new Query().addCriteria(Criteria.where("alias").is(alias));
+    Update updateAccessCount = new Update().inc("accessCount", 1);
 
-    when(urlRepository.findByAlias(alias)).thenReturn(Optional.of(url));
+    when(mongoTemplate.findAndModify(
+      findByAlias,
+      updateAccessCount,
+      Url.class
+    )).thenReturn(url);
 
     String result = urlService.retrieve(alias);
 
     assertThat(originalUrl).isEqualTo(result);
-    verify(urlRepository).findByAlias(alias);
+    verify(mongoTemplate).findAndModify(
+      findByAlias,
+      updateAccessCount,
+      Url.class
+    );
   }
 
   @Test
   void shouldThrowExceptionForNotRegisteredAlias() {
     String alias = "nonexistent";
-
-    when(urlRepository.findByAlias(alias)).thenReturn(Optional.empty());
 
     assertThatThrownBy(() -> urlService.retrieve(alias))
       .isInstanceOf(ResourceNotFoundException.class)
