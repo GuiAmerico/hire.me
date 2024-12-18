@@ -21,7 +21,6 @@ public class UrlShortenDTO {
   private String originalUrl;
   @JsonProperty(value = "short_url")
   private String shortUrl;
-  @Pattern(regexp = "^[a-zA-Z0-9]{1,10}$", message = "The short URL must have between 1 and 10 alphanumeric characters")
   private String alias;
   @JsonProperty(value = "processing_time_in_ms")
   private Long processingTimeInMs;
